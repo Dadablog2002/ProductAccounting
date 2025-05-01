@@ -61,10 +61,12 @@
             gap: 10px;
             margin-bottom: 20px;
             justify-content: center;
+            align-items: center;
         }
         .controls input[type="text"],
         .controls input[type="number"],
-        .controls input[type="file"] {
+        .controls input[type="file"],
+        .controls select {
             padding: 10px;
             border-radius: 10px;
             border: 1px solid #ccc;
@@ -136,10 +138,28 @@
             <input type="text" id="name" placeholder="Назва товару">
             <input type="number" id="price" placeholder="Ціна">
             <input type="number" id="quantity" placeholder="Кількість">
+            <select id="category">
+                <option value="">Категорія</option>
+                <option value="Телефони">Телефони</option>
+                <option value="Комп'ютери">Комп'ютери</option>
+                <option value="Ноутбуки">Ноутбуки</option>
+                <option value="Планшети">Планшети</option>
+                <option value="Матеріали для ремонту">Матеріали для ремонту</option>
+                <option value="Інше">Інше</option>
+            </select>
             <button onclick="addItem()">Додати</button>
             <input type="file" accept=".xlsx" onchange="handleFileUpload(event)">
-            <button onclick="downloadPDF()">Зберегти в PDF</button>
             <button onclick="downloadExcel()">Експорт в Excel</button>
+            <select id="sortCategory" onchange="sortItems()">
+                <option value="">Сортувати за категорією</option>
+                <option value="Телефони">Телефони</option>
+                <option value="Комп'ютери">Комп'ютери</option>
+                <option value="Ноутбуки">Ноутбуки</option>
+                <option value="Планшети">Планшети</option>
+                <option value="Матеріали для ремонту">Матеріали для ремонту</option>
+                <option value="Інше">Інше</option>
+            </select>
+            <input type="text" id="search" placeholder="Пошук товару" onkeyup="searchItems()">
             <button onclick="toggleTheme()">Темна тема</button>
         </div>
 
@@ -147,6 +167,7 @@
             <thead>
                 <tr>
                     <th>Назва товару</th>
+                    <th>Категорія</th>
                     <th>Ціна</th>
                     <th>Кількість</th>
                     <th>Сума</th>
@@ -156,15 +177,138 @@
             <tbody id="tableBody"></tbody>
             <tfoot>
                 <tr>
-                    <td colspan="3">Загальна сума</td>
+                    <td colspan="4">Загальна сума</td>
                     <td colspan="2" id="totalSum">0.00 грн</td>
                 </tr>
             </tfoot>
         </table>
+<div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; transition: background 0.3s, color 0.3s; background: var(--bg-color); color: var(--text-color);">
+    <div class="calc-container">
+        <div class="calc-display">
+            <input type="text" id="calc-display" value="0" readonly>
+        </div>
+        <div class="calc-buttons">
+            <button class="calc-button calc-function" onclick="calcCurrentInput = ''; document.getElementById('calc-display').value = '0';">AC</button>
+            <button class="calc-button calc-function" onclick="try { calcCurrentInput = String(eval(calcCurrentInput) * -1); document.getElementById('calc-display').value = calcCurrentInput; } catch { document.getElementById('calc-display').value = 'Помилка!'; calcCurrentInput = ''; }">±</button>
+            <button class="calc-button calc-function" onclick="try { calcCurrentInput = String(eval(calcCurrentInput) / 100); document.getElementById('calc-display').value = calcCurrentInput; } catch { document.getElementById('calc-display').value = 'Помилка!'; calcCurrentInput = ''; }">%</button>
+            <button class="calc-button calc-operator" onclick="if (calcCurrentInput === '') return; const lastChar = calcCurrentInput.slice(-1); if ('+-*/'.includes(lastChar)) { calcCurrentInput = calcCurrentInput.slice(0, -1) + '/'; } else { calcCurrentInput += '/'; } document.getElementById('calc-display').value = calcCurrentInput;">÷</button>
+
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '7' !== '.') { calcCurrentInput = '7'; } else { calcCurrentInput += '7'; } document.getElementById('calc-display').value = calcCurrentInput;">7</button>
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '8' !== '.') { calcCurrentInput = '8'; } else { calcCurrentInput += '8'; } document.getElementById('calc-display').value = calcCurrentInput;">8</button>
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '9' !== '.') { calcCurrentInput = '9'; } else { calcCurrentInput += '9'; } document.getElementById('calc-display').value = calcCurrentInput;">9</button>
+            <button class="calc-button calc-operator" onclick="if (calcCurrentInput === '') return; const lastChar = calcCurrentInput.slice(-1); if ('+-*/'.includes(lastChar)) { calcCurrentInput = calcCurrentInput.slice(0, -1) + '*'; } else { calcCurrentInput += '*'; } document.getElementById('calc-display').value = calcCurrentInput;">×</button>
+
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '4' !== '.') { calcCurrentInput = '4'; } else { calcCurrentInput += '4'; } document.getElementById('calc-display').value = calcCurrentInput;">4</button>
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '5' !== '.') { calcCurrentInput = '5'; } else { calcCurrentInput += '5'; } document.getElementById('calc-display').value = calcCurrentInput;">5</button>
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '6' !== '.') { calcCurrentInput = '6'; } else { calcCurrentInput += '6'; } document.getElementById('calc-display').value = calcCurrentInput;">6</button>
+            <button class="calc-button calc-operator" onclick="if (calcCurrentInput === '') return; const lastChar = calcCurrentInput.slice(-1); if ('+-*/'.includes(lastChar)) { calcCurrentInput = calcCurrentInput.slice(0, -1) + '-'; } else { calcCurrentInput += '-'; } document.getElementById('calc-display').value = calcCurrentInput;">−</button>
+
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '1' !== '.') { calcCurrentInput = '1'; } else { calcCurrentInput += '1'; } document.getElementById('calc-display').value = calcCurrentInput;">1</button>
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '2' !== '.') { calcCurrentInput = '2'; } else { calcCurrentInput += '2'; } document.getElementById('calc-display').value = calcCurrentInput;">2</button>
+            <button class="calc-button" onclick="if (calcCurrentInput === '0' && '3' !== '.') { calcCurrentInput = '3'; } else { calcCurrentInput += '3'; } document.getElementById('calc-display').value = calcCurrentInput;">3</button>
+            <button class="calc-button calc-operator" onclick="if (calcCurrentInput === '') return; const lastChar = calcCurrentInput.slice(-1); if ('+-*/'.includes(lastChar)) { calcCurrentInput = calcCurrentInput.slice(0, -1) + '+'; } else { calcCurrentInput += '+'; } document.getElementById('calc-display').value = calcCurrentInput;">+</button>
+
+            <button class="calc-button calc-zero" onclick="if (calcCurrentInput === '0' && '0' !== '.') { calcCurrentInput = '0'; } else { calcCurrentInput += '0'; } document.getElementById('calc-display').value = calcCurrentInput;">0</button>
+            <button class="calc-button" onclick="const parts = calcCurrentInput.split(/[\+\-\*\/]/); if (!parts[parts.length - 1].includes('.')) { calcCurrentInput += '.'; document.getElementById('calc-display').value = calcCurrentInput; }">.</button>
+            <button class="calc-button calc-equal" onclick="try { calcCurrentInput = String(eval(calcCurrentInput)); document.getElementById('calc-display').value = calcCurrentInput; } catch { document.getElementById('calc-display').value = 'Помилка!'; calcCurrentInput = ''; }">=</button>
+        </div>
     </div>
+    <style>
+        .calc-container {
+            background-color: var(--container-bg);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+            width: 300px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .calc-display {
+            background-color: var(--table-header-bg);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--table-border-color);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .calc-display input {
+            width: 100%;
+            font-size: 1.8em;
+            background: none;
+            border: none;
+            color: inherit;
+            text-align: right;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .calc-button {
+            padding: 15px;
+            font-size: 1.4em;
+            border: none;
+            outline: none;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.05s ease, color 0.2s ease;
+            user-select: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .calc-button:active {
+            transform: scale(0.95);
+        }
+        .calc-button:hover {
+            background-color: #f0f0f0;
+            color: var(--button-bg);
+        }
+        .calc-operator {
+            background-color: var(--button-bg);
+            color: white;
+        }
+        .calc-operator:hover {
+            background-color: var(--button-hover-bg);
+        }
+        .calc-function {
+            background-color: #ddd;
+            color: var(--text-color);
+        }
+        .calc-function:hover {
+            background-color: #ccc;
+            color: var(--button-bg);
+        }
+        .calc-equal {
+            background-color: var(--button-bg);
+            color: white;
+            grid-column: span 2;
+        }
+        .calc-equal:hover {
+            background-color: var(--button-hover-bg);
+        }
+        .calc-zero {
+            grid-column: span 2;
+        }
+        @media (max-width: 480px) {
+            .calc-container {
+                width: 90%;
+            }
+            .calc-button {
+                padding: 12px;
+                font-size: 1.2em;
+            }
+            .calc-display {
+                padding: 15px;
+            }
+            .calc-display input {
+                font-size: 1.6em;
+            }
+        }
+    </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         let items = JSON.parse(localStorage.getItem("items")) || [];
         let isDarkMode = localStorage.getItem("darkMode") === "true" || false;
@@ -185,23 +329,24 @@
             updateTheme();
         }
 
-        function renderTable() {
+        function renderTable(currentItems = items) {
             const body = document.getElementById("tableBody");
             const totalSumEl = document.getElementById("totalSum");
             body.innerHTML = "";
             let total = 0;
 
-            items.forEach((item, index) => {
+            currentItems.forEach((item, index) => {
                 const sum = item.price * item.quantity;
                 total += sum;
 
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${item.name}</td>
+                    <td>${item.category}</td>
                     <td>${item.price.toFixed(2)}</td>
                     <td>${item.quantity}</td>
                     <td>${sum.toFixed(2)}</td>
-                    <td><button onclick="deleteItem(${index})">❌</button></td>
+                    <td><button onclick="confirmDelete(${index})">❌</button></td>
                 `;
                 body.appendChild(row);
             });
@@ -214,18 +359,26 @@
             const name = document.getElementById("name").value.trim();
             const price = parseFloat(document.getElementById("price").value);
             const quantity = parseInt(document.getElementById("quantity").value);
+            const category = document.getElementById("category").value;
 
-            if (!name || isNaN(price) || isNaN(quantity)) {
-                alert("Будь ласка, заповніть усі поля правильно.");
+            if (!name || isNaN(price) || isNaN(quantity) || !category) {
+                alert("Будь ласка, заповніть усі поля та виберіть категорію.");
                 return;
             }
 
-            items.push({ name, price, quantity });
+            items.push({ name, price, quantity, category });
             renderTable();
 
             document.getElementById("name").value = "";
             document.getElementById("price").value = "";
             document.getElementById("quantity").value = "";
+            document.getElementById("category").value = "";
+        }
+
+        function confirmDelete(index) {
+            if (confirm("Ви впевнені, що хочете видалити цей товар?")) {
+                deleteItem(index);
+            }
         }
 
         function deleteItem(index) {
@@ -246,8 +399,9 @@
                     const name = row["Назва товару"];
                     const price = parseFloat(row["Ціна"]);
                     const quantity = parseInt(row["Кількість"]);
+                    const category = row["Категорія"] || "Інше";
                     if (name && !isNaN(price) && !isNaN(quantity)) {
-                        items.push({ name, price, quantity });
+                        items.push({ name, price, quantity, category });
                     }
                 });
 
@@ -256,28 +410,43 @@
             reader.readAsArrayBuffer(file);
         }
 
-        function downloadPDF() {
-            const element = document.getElementById("myTable");
-            const opt = {
-                margin: 0.5,
-                filename: 'облік-товарів.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().from(element).set(opt).save();
-        }
-
         function downloadExcel() {
             const wb = XLSX.utils.book_new();
             const wsData = [
-                ["Назва товару", "Ціна", "Кількість", "Сума"],
-                ...items.map(item => [item.name, item.price, item.quantity, (item.price * item.quantity).toFixed(2)]),
-                ["", "", "Загальна сума", document.getElementById("totalSum").textContent.replace(" грн", "")]
+                ["Назва товару", "Категорія", "Ціна", "Кількість", "Сума"],
+                ...items.map(item => [item.name, item.category, item.price, item.quantity, (item.price * item.quantity).toFixed(2)]),
+                ["", "", "", "Загальна сума", document.getElementById("totalSum").textContent.replace(" грн", "")]
             ];
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Товари");
             XLSX.writeFile(wb, 'облік-товарів.xlsx');
+        }
+
+        function sortItems() {
+            const selectedCategory = document.getElementById("sortCategory").value;
+            if (selectedCategory) {
+                const sortedItems = [...items].sort((a, b) => {
+                    if (a.category === selectedCategory && b.category !== selectedCategory) {
+                        return -1;
+                    }
+                    if (a.category !== selectedCategory && b.category === selectedCategory) {
+                        return 1;
+                    }
+                    return 0;
+                });
+                renderTable(sortedItems);
+            } else {
+                renderTable();
+            }
+        }
+
+        function searchItems() {
+            const searchTerm = document.getElementById("search").value.toLowerCase();
+            const filteredItems = items.filter(item =>
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.category.toLowerCase().includes(searchTerm)
+            );
+            renderTable(filteredItems);
         }
 
         updateTheme();
